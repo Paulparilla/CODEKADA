@@ -1,0 +1,7 @@
+agents:
+  arms-main-agent: Orchestrator & State Manager.
+  arms-backend-agent: Supabase, Auth, Business Logic.
+  arms-frontend-agent: Next.js UI, Tailwind v4, Mobile-First.
+  arms-data-agent: Prisma schemas & Supabase migrations.
+  arms-media-agent: Assets & Design.
+  arms-seo-agent: SEO & Core Web Vitals.
