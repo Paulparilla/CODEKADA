@@ -11,12 +11,13 @@
 | **Phase 1: Environment Setup** | | | |
 | Initialize Next.js 15 (App Router) | arms-devops-agent | Approval | ✅ Complete |
 | Initialize Supabase CLI & Local DB | arms-data-agent | Scaffolding | 🔄 In Progress (Blocked) |
-| Configure Prisma with Supabase | arms-data-agent | Supabase Init | ⏳ Pending |
+| Configure Prisma with Supabase | arms-data-agent | Supabase Init | ✅ Complete |
 | **Phase 1.5: DevOps & Version Control** | | | |
-| Initialize Git & Add Remote (`Paulparilla/CODEKADA`) | arms-devops-agent | - | ⏳ Pending |
-| Create Branches (MAIN, MASTER, VALIDATION, FRONTEND, BACKEND, OTHERS) | arms-devops-agent | Git Init | ⏳ Pending |
+| Initialize Git & Add Remote (`Paulparilla/CODEKADA`) | arms-devops-agent | - | ✅ Complete |
+| Create Branches (MAIN, MASTER, VALIDATION, FRONTEND, BACKEND, OTHERS) | arms-devops-agent | Git Init | ✅ Complete |
 | **Phase 2: Backend Architecture** | | | |
-| Implement Auth Logic (Server Actions) | arms-backend-agent | Supabase Init | ⏳ Pending |
+| Install Dependencies & generate Prisma client | arms-devops-agent | Scaffolding | ✅ Complete |
+| Implement Auth Logic (Server Actions) | arms-backend-agent | Prisma Init | ⏳ Pending |
 | Define Zod Models & Services | arms-backend-agent | Prisma Init | ⏳ Pending |
 | XP & Penalty Utils Logic | arms-backend-agent | - | ⏳ Pending |
 | **Phase 3: Frontend Foundations** | | | |

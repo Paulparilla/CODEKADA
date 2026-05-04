@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String?
+  role          Role     @default(STUDENT)
+  avatar        String?
+  xp            Int      @default(0)
+  level         Int      @default(1)
+  streak        Int      @default(0)
+  lastStreakDate DateTime?
+  totalStudyTime Int     @default(0) // minutes
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  profile       Profile?
+  memberships   ClassMember[]
+  taughtClasses Class[]     @relation("TeacherClasses")
+  sessions      StudySession[]
+  schedules     Schedule[]
+  rewardClaims  RewardClaim[]
+  penalties     Penalty[]
+}
+
+model Profile {
+  id          String @id @default(uuid())
+  userId      String @unique
+  bio         String?
+  timezone    String @default("Asia/Manila")
+  user        User   @relation(fields: [userId], references: [id])
+}
+
+model Class {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  teacherId   String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teacher     User         @relation("TeacherClasses", fields: [teacherId], references: [id])
+  members     ClassMember[]
+  schedules   Schedule[]
+  sessions    StudySession[]
+}
+
+model ClassMember {
+  id        String   @id @default(uuid())
+  classId   String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([classId, userId])
+}
+
+model Schedule {
+  id           String   @id @default(uuid())
+  classId      String?
+  userId       String? 
+  title        String?
+  startTime    DateTime
+  duration     Int      // minutes
+  isExamMode   Boolean  @default(false)
+  isRecurring  Boolean  @default(false)
+  recurrence   String?  // e.g. "weekly"
+  createdAt    DateTime @default(now())
+
+  class        Class?   @relation(fields: [classId], references: [id])
+  user         User?    @relation(fields: [userId], references: [id])
+  sessions     StudySession[]
+}
+
+model StudySession {
+  id           String        @id @default(uuid())
+  userId       String
+  classId      String?
+  scheduleId   String?
+  startedAt    DateTime
+  endedAt      DateTime?
+  plannedDuration Int
+  actualDuration Int        @default(0)
+  status       SessionStatus @default(PENDING)
+  xpEarned     Int           @default(0)
+  completedAt  DateTime?
+  focusScore   Int?          // 0-100
+
+  user         User          @relation(fields: [userId], references: [id])
+  class        Class?        @relation(fields: [classId], references: [id])
+  schedule     Schedule?     @relation(fields: [scheduleId], references: [id])
+  penalties    Penalty[]
+}
+
+model Reward {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  cost        Int
+  type        RewardType
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  claims      RewardClaim[]
+}
+
+model RewardClaim {
+  id        String   @id @default(uuid())
+  userId    String
+  rewardId  String
+  claimedAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  reward    Reward   @relation(fields: [rewardId], references: [id])
+
+  @@unique([userId, rewardId, claimedAt])
+}
+
+model Penalty {
+  id          String   @id @default(uuid())
+  userId      String
+  sessionId   String?
+  reason      String
+  xpLost      Int
+  streakReset Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user        User          @relation(fields: [userId], references: [id])
+  session     StudySession? @relation(fields: [sessionId], references: [id])
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum SessionStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  PENALIZED
+}
+
+enum RewardType {
+  BADGE
+  PERK
+  CERTIFICATE
+  RECOGNITION
+  ITEM
+}
