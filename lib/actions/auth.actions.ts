@@ -1,0 +1,125 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
+import { signUpSchema, signInSchema } from "@/types";
+
+export type AuthState = {
+  error?: string;
+  fieldErrors?: Record<string, string[]>;
+};
+
+/**
+ * Sign up a new user.
+ * Creates Supabase auth user + Prisma User record.
+ */
+export async function signUp(
+  _prevState: AuthState,
+  formData: FormData
+): Promise<AuthState> {
+  // 1. Validate input
+  const raw = {
+    name: formData.get("name") as string,
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+    role: formData.get("role") as string,
+  };
+
+  const parsed = signUpSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  const { name, email, password, role } = parsed.data;
+
+  // 2. Create Supabase auth user with role in metadata
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        name,
+        role, // stored in user_metadata for middleware access
+      },
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (!data.user) {
+    return { error: "Registration failed. Please try again." };
+  }
+
+  // 3. Create matching Prisma User record
+  try {
+    await prisma.user.create({
+      data: {
+        id: data.user.id,
+        email,
+        name,
+        role: role as "STUDENT" | "TEACHER",
+      },
+    });
+  } catch {
+    // User might already exist if retrying — that's okay
+  }
+
+  // 4. Redirect to appropriate dashboard
+  redirect(role === "TEACHER" ? "/teacher/dashboard" : "/student/dashboard");
+}
+
+/**
+ * Sign in an existing user.
+ */
+export async function signIn(
+  _prevState: AuthState,
+  formData: FormData
+): Promise<AuthState> {
+  // 1. Validate input
+  const raw = {
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+  };
+
+  const parsed = signInSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  const { email, password } = parsed.data;
+
+  // 2. Sign in with Supabase
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return { error: "Invalid email or password" };
+  }
+
+  // 3. Get role from Prisma to redirect correctly
+  const dbUser = await prisma.user.findUnique({
+    where: { email },
+    select: { role: true },
+  });
+
+  const role = dbUser?.role ?? "STUDENT";
+
+  // 4. Redirect to appropriate dashboard
+  redirect(role === "TEACHER" || role === "ADMIN" ? "/teacher/dashboard" : "/student/dashboard");
+}
+
+/**
+ * Sign out the current user.
+ */
+export async function signOut(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}

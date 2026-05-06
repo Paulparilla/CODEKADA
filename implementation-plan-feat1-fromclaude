@@ -1,0 +1,147 @@
+# Authentication with Role-Based Access
+
+Implement a complete auth system (login, register, role-based routing) using Supabase Auth + Prisma, following the FocusForge UI/UX guidelines and Clean Architecture patterns.
+
+## Current State
+
+All files in the project are empty scaffolds. The Prisma schema is complete and defines `User` with a `Role` enum (`STUDENT`, `TEACHER`, `ADMIN`). Supabase is configured in `.env`. No code exists yet in any `.ts`/`.tsx` file.
+
+## Proposed Changes
+
+### Foundation Layer (lib/)
+
+#### [MODIFY] [prisma.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/lib/prisma.ts)
+- Singleton PrismaClient instance with global caching for hot-reload safety in dev.
+
+#### [MODIFY] [supabase.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/lib/supabase.ts)
+- Two factory functions following `@supabase/ssr` patterns:
+  - `createClient()` — server-side client (cookies-based, for Server Components & Server Actions).
+  - `createBrowserClient()` — client-side client (for hooks/client components).
+
+#### [MODIFY] [auth.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/lib/auth.ts)
+- Auth service layer with pure functions:
+  - `getSession()` — retrieve current Supabase session server-side.
+  - `getUserWithRole()` — fetch session + Prisma `User` record (including `role`).
+  - `requireAuth(allowedRoles?)` — guard helper that throws/redirects if unauthenticated or unauthorized.
+
+---
+
+### Server Actions (lib/actions/)
+
+#### [MODIFY] [auth.actions.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/lib/actions/auth.actions.ts)
+- `signUp(formData)` — Validates with Zod, calls `supabase.auth.signUp()`, creates a matching Prisma `User` record with the selected role, redirects to the appropriate dashboard.
+- `signIn(formData)` — Validates with Zod, calls `supabase.auth.signInWithPassword()`, looks up Prisma role, redirects to the correct dashboard (`/dashboard` for students, `/dashboard` for teachers — same path, different route groups handle it via middleware).
+- `signOut()` — Calls `supabase.auth.signOut()`, redirects to `/login`.
+
+---
+
+### Edge Middleware
+
+#### [MODIFY] [middleware.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/middleware.ts)
+- Refreshes Supabase session tokens on every request (required by `@supabase/ssr`).
+- Route protection logic:
+  - `/login`, `/signup` → redirect to dashboard if already authenticated.
+  - `/(student)/*` → require auth + `STUDENT` role.
+  - `/(teacher)/*` → require auth + `TEACHER` or `ADMIN` role.
+- Role is read from the Prisma `User` table via a lightweight lookup (cached in cookie/session metadata to avoid repeated DB calls).
+
+> [!IMPORTANT]
+> Middleware runs at the Edge. We cannot use Prisma directly in Edge middleware. Instead, the role will be stored as user metadata in Supabase Auth (`app_metadata.role`) during signup, and read from the JWT in middleware. The Prisma `User.role` remains the source of truth and is synced on login.
+
+---
+
+### Types
+
+#### [MODIFY] [user.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/types/user.ts)
+- `AuthUser` type — session user with role info.
+- `SignUpInput` / `SignInInput` — Zod schemas + inferred types.
+
+#### [MODIFY] [index.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/types/index.ts)
+- Re-export all types from `user.ts`.
+
+---
+
+### Auth Hook (Client-side)
+
+#### [MODIFY] [useAuth.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/hooks/useAuth.ts)
+- Subscribes to `onAuthStateChange` via the browser Supabase client.
+- Exposes `user`, `role`, `loading`, `signOut()` for client components.
+
+---
+
+### Auth Pages (Frontend)
+
+#### [MODIFY] [layout.tsx](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/app/layout.tsx)
+- Root layout: loads `Inter` font from `next/font/google`, applies globals.css, wraps children.
+
+#### [MODIFY] [(auth)/layout.tsx](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/app/(auth)/layout.tsx)
+- Centered layout with cream background, FocusForge branding.
+- Server Component that checks if user is already logged in → redirects to dashboard.
+
+#### [MODIFY] [(auth)/login/page.tsx](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/app/(auth)/login/page.tsx)
+- Clean login form: email + password inputs, submit button.
+- UI: cream background, navy accents, subtle card with shadow.
+- Calls `signIn` server action via form action.
+- Error display for invalid credentials.
+- Link to `/signup`.
+
+#### [MODIFY] [(auth)/signup/page.tsx](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/app/(auth)/signup/page.tsx)
+- Registration form: name, email, password, role selector (Student / Teacher toggle).
+- Same visual style as login.
+- Calls `signUp` server action.
+- Link to `/login`.
+
+---
+
+### Protected Route Layouts (Role Guards)
+
+#### [MODIFY] [(student)/layout.tsx](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/app/(student)/layout.tsx)
+- Server Component guard: calls `requireAuth(['STUDENT'])`.
+- If unauthorized → redirect to login or teacher dashboard.
+- Renders children with a placeholder dashboard shell (min layout for now).
+
+#### [MODIFY] [(teacher)/layout.tsx](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/app/(teacher)/layout.tsx)
+- Server Component guard: calls `requireAuth(['TEACHER', 'ADMIN'])`.
+- Same pattern, renders children.
+
+---
+
+### Supabase Auth Callback
+
+#### [NEW] [route.ts](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/app/api/auth/callback/route.ts)
+- Handles the OAuth/email confirmation callback from Supabase.
+- Exchanges the auth code for a session and redirects to the dashboard.
+
+---
+
+### Next.js Config
+
+#### [MODIFY] [next.config.js](file:///c:/Users/Administrator/Desktop/FocusForge/CODEKADA/next.config.js)
+- Minimal config: enable `serverActions` (default in Next 15), set up image domains if needed.
+
+---
+
+## Open Questions
+
+> [!IMPORTANT]
+> **Email confirmation**: Should signup require email verification before granting access, or should users be logged in immediately? For local development, I recommend **disabling email confirmation** in Supabase so you can test freely. This can be toggled in the Supabase dashboard under Authentication → Providers → Email.
+
+> [!NOTE]
+> **Admin role**: The schema includes an `ADMIN` role. For now, I'll treat `ADMIN` as having the same access as `TEACHER` (can access `/(teacher)/*` routes). A dedicated admin panel can be added later.
+
+## Verification Plan
+
+### Automated Tests
+- `npm run build` — ensure no TypeScript errors and the project compiles.
+- Manual browser test: navigate to `/login`, `/signup`, attempt login with invalid creds, register a student and teacher, verify correct redirects.
+
+### Manual Verification
+- Start dev server with `npm run dev`.
+- Test the full flow in the browser:
+  1. Visit `/login` → see the styled login page.
+  2. Click "Sign Up" → navigate to `/signup`.
+  3. Register as a Student → redirect to `/(student)/dashboard`.
+  4. Sign out → redirect to `/login`.
+  5. Register as a Teacher → redirect to `/(teacher)/dashboard`.
+  6. Try accessing `/(teacher)/dashboard` as a Student → redirect to correct dashboard.
+  7. Try accessing `/(student)/dashboard` while unauthenticated → redirect to `/login`.
