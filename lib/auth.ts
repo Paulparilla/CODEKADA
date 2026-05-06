@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import type { AuthUser, Role } from "@/types";
 
@@ -37,6 +37,7 @@ export async function getUserWithRole(): Promise<AuthUser | null> {
       xp: true,
       level: true,
       streak: true,
+      totalStudyTime: true,
     },
   });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { createBrowserClient } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import type { AuthUser, Role } from "@/types";
 import type { User } from "@supabase/supabase-js";
 
@@ -21,6 +21,7 @@ function mapSupabaseUser(user: User): AuthUser {
     xp: 0,
     level: 1,
     streak: 0,
+    totalStudyTime: 0,
   };
 }
 
@@ -33,7 +34,7 @@ export function useAuth(): UseAuthReturn {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const supabase = createBrowserClient();
+    const supabase = createClient();
 
     // Get initial session
     supabase.auth.getUser().then(({ data: { user: sbUser } }) => {
@@ -53,7 +54,7 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   const signOut = useCallback(async () => {
-    const supabase = createBrowserClient();
+    const supabase = createClient();
     await supabase.auth.signOut();
     setUser(null);
     window.location.href = "/login";

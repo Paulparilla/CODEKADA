@@ -14,6 +14,7 @@ export interface AuthUser {
   xp: number;
   level: number;
   streak: number;
+  totalStudyTime: number;
 }
 
 // ─── Zod Schemas ─────────────────────────────────────────
