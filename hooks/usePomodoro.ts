@@ -70,6 +70,7 @@ export function usePomodoro(settings = DEFAULT_SETTINGS) {
         }
       } else {
         switchMode("WORK");
+        setIsActive(true); // Auto-start focus after break finishes
       }
       
       // Notify extension that timer is finished
