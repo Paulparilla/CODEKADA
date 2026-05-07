@@ -22,6 +22,7 @@ import { Shield, ShieldAlert, ShieldCheck } from "lucide-react";
 
 interface PomodoroTimerProps {
   userId: string;
+  classId?: string;
 }
 
 type Mode = "focus" | "short" | "long";
@@ -53,7 +54,7 @@ const MODE_CONFIG = {
   },
 };
 
-export default function PomodoroTimer({ userId }: PomodoroTimerProps) {
+export default function PomodoroTimer({ userId, classId }: PomodoroTimerProps) {
   const [mode, setMode] = useState<Mode>("focus");
   const [durations, setDurations] = useState({ focus: 25, short: 5, long: 15 });
   const [timeLeft, setLeft] = useState(durations.focus * 60);
@@ -70,6 +71,7 @@ export default function PomodoroTimer({ userId }: PomodoroTimerProps) {
   useFocusEnforcement({
     isActive: isActive && mode === "focus",
     isStrictMode: isStrictMode,
+    classId: classId,
   });
 
   // Initialize audio

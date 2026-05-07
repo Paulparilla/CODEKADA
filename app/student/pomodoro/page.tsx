@@ -153,7 +153,10 @@ export default async function PomodoroPage() {
 
           {/* Main Timer Module */}
           <div className="py-4">
-            <PomodoroTimer userId={user.id} />
+            <PomodoroTimer 
+              userId={user.id} 
+              classId={user.memberships[0]?.classId} 
+            />
           </div>
         </div>
 

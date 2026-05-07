@@ -41,6 +41,7 @@ export default function StudentDashboard() {
   useFocusEnforcement({
     isActive,
     isStrictMode,
+    classId: user?.memberships?.[0]?.classId, // Use primary class policy if available
   });
 
   const [isSyncing, setIsSyncing] = useState(false);

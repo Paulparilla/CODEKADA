@@ -65,6 +65,18 @@ model Class {
   assignments   Assignment[]
   documents     Document[]
   quizzes       Quiz[]
+  focusPolicy   FocusPolicy?
+}
+
+model FocusPolicy {
+  id        String   @id @default(uuid())
+  classId   String   @unique
+  domains   String[] // Array of blocked domains
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class     Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
 }
 
 model Announcement {

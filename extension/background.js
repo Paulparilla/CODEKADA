@@ -1,9 +1,13 @@
 // background.js
 let isFocusModeActive = false;
+let blockedDomains = [];
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SET_FOCUS_MODE") {
     isFocusModeActive = message.active;
+    if (message.domains) {
+      blockedDomains = message.domains;
+    }
     broadcastFocusState();
   } else if (message.type === "TIMER_FINISHED") {
     // Notify all tabs to play a sound
@@ -20,7 +24,8 @@ function broadcastFocusState() {
     tabs.forEach((tab) => {
       chrome.tabs.sendMessage(tab.id, { 
         type: "FOCUS_STATE_CHANGED", 
-        active: isFocusModeActive 
+        active: isFocusModeActive,
+        domains: blockedDomains
       }).catch(() => {});
     });
   });
@@ -31,7 +36,8 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete" && isFocusModeActive) {
     chrome.tabs.sendMessage(tabId, { 
       type: "FOCUS_STATE_CHANGED", 
-      active: true 
+      active: true,
+      domains: blockedDomains
     }).catch(() => {});
   }
 });

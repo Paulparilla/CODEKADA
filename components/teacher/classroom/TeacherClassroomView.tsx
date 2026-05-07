@@ -6,11 +6,13 @@ import {
   Settings, 
   Users, 
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from "lucide-react";
 import ClassWall from "@/components/teacher/classroom/ClassWall";
 import ClassRoster from "@/components/teacher/classroom/ClassRoster";
 import ClassTools from "@/components/teacher/classroom/ClassTools";
+import ShieldManagement from "@/components/teacher/classroom/ShieldManagement";
 import QuizPlayer from "@/components/student/classroom/QuizPlayer";
 import QuizAnalyticsModal from "@/components/teacher/classroom/QuizAnalyticsModal";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +23,7 @@ interface TeacherClassroomViewProps {
 }
 
 export default function TeacherClassroomView({ classData, userId }: TeacherClassroomViewProps) {
-  const [activeTab, setActiveTab] = useState<"feed" | "tools" | "roster">("feed");
+  const [activeTab, setActiveTab] = useState<"feed" | "tools" | "roster" | "shield">("feed");
   const [activeQuiz, setActiveQuiz] = useState<any>(null);
   const [analyticsQuiz, setAnalyticsQuiz] = useState<any>(null);
 
@@ -39,6 +41,7 @@ export default function TeacherClassroomView({ classData, userId }: TeacherClass
     { id: "feed", label: "Wall", icon: MessageSquare },
     { id: "tools", label: "Admin Tools", icon: Settings },
     { id: "roster", label: "Students", icon: Users },
+    { id: "shield", label: "Shield", icon: Shield },
   ];
 
   return (
@@ -98,6 +101,13 @@ export default function TeacherClassroomView({ classData, userId }: TeacherClass
             isTeacher={true}
           />
         </div>
+
+        {/* Shield Management Tab Content (Full Width when active) */}
+        {activeTab === "shield" && (
+          <div className="lg:col-span-12">
+            <ShieldManagement classId={classData.id} />
+          </div>
+        )}
 
       </div>
 

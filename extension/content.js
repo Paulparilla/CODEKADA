@@ -8,7 +8,8 @@ if (isFocusForgeApp) {
   window.addEventListener("FOCUSFORGE_TIMER_STATE", (event) => {
     chrome.runtime.sendMessage({ 
       type: "SET_FOCUS_MODE", 
-      active: event.detail.active 
+      active: event.detail.active,
+      domains: event.detail.domains
     });
   });
 
@@ -19,28 +20,36 @@ if (isFocusForgeApp) {
 }
 
 // 2. Global Blur Enforcement Logic
-function updateBlur(active) {
+function updateBlur(active, domains = []) {
   // Never blur the FocusForge app itself
   if (isFocusForgeApp) return;
 
-  const distractions = ["facebook.com", "youtube.com", "tiktok.com", "instagram.com", "twitter.com", "reddit.com"];
-  const isDistraction = distractions.some(d => window.location.hostname.includes(d));
+  // If active but no domains are specified in the matrix, we don't blur anything
+  // unless we want a global default (user said "ACCORDING ONLY TO THE MATRIX")
+  if (!active || !domains || domains.length === 0) {
+    document.documentElement.classList.remove("focusforge-distraction");
+    const overlay = document.getElementById("focusforge-shield-overlay");
+    if (overlay) overlay.remove();
+    return;
+  }
 
-  if (active) {
+  const isDistraction = domains.some(d => window.location.hostname.includes(d.toLowerCase()));
+
+  if (active && isDistraction) {
     document.documentElement.classList.add("focusforge-distraction");
     
     if (!document.getElementById("focusforge-shield-overlay")) {
       const overlay = document.createElement("div");
       overlay.id = "focusforge-shield-overlay";
       
-      const siteName = isDistraction ? window.location.hostname.split('.')[1].toUpperCase() : "Distraction";
+      const siteName = window.location.hostname.split('.')[1]?.toUpperCase() || "DISTRACTION";
       
       overlay.innerHTML = `
         <div style="text-align: center; color: white; font-family: 'Inter', sans-serif; padding: 40px; background: rgba(15, 23, 42, 0.9); border-radius: 32px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(20px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
           <div style="font-size: 64px; margin-bottom: 24px;">🛡️</div>
           <h1 style="font-size: 32px; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.02em;">FOCUSFORGE SHIELD</h1>
           <p style="font-size: 18px; color: #94a3b8; margin-bottom: 32px;">${siteName} is currently restricted to protect your productivity.</p>
-          <div style="font-[10px]; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #3b82f6;">Session in Progress</div>
+          <div style="font-[10px]; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; color: #3b82f6;">Teacher Managed Policy</div>
         </div>
       `;
       document.body.appendChild(overlay);
@@ -55,7 +64,7 @@ function updateBlur(active) {
 // Listen for messages from background.js
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "FOCUS_STATE_CHANGED") {
-    updateBlur(message.active);
+    updateBlur(message.active, message.domains);
   } else if (message.type === "PLAY_NOTIFICATION") {
     // Play sound even on other tabs
     const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");

@@ -2,22 +2,40 @@
 
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
+import { getFocusPolicy } from "@/lib/actions/shield.actions";
 
 interface FocusEnforcementProps {
   isActive: boolean;
   isStrictMode: boolean;
+  classId?: string;
   onViolation?: () => void;
 }
 
-export function useFocusEnforcement({ isActive, isStrictMode, onViolation }: FocusEnforcementProps) {
+export function useFocusEnforcement({ isActive, isStrictMode, classId, onViolation }: FocusEnforcementProps) {
   const [isTabFocused, setIsTabFocused] = useState(true);
 
   useEffect(() => {
-    // Notify the Chrome Extension (if installed)
-    // Shield (blurring) should be active whenever the timer is running
-    window.dispatchEvent(new CustomEvent("FOCUSFORGE_TIMER_STATE", {
-      detail: { active: isActive }
-    }));
+    const notifyExtension = async () => {
+      let domains = ["facebook.com", "youtube.com", "tiktok.com", "instagram.com"];
+      
+      if (classId) {
+        const policy = await getFocusPolicy(classId);
+        if (policy && policy.domains.length > 0) {
+          domains = policy.domains;
+        }
+      }
+
+      // Notify the Chrome Extension (if installed)
+      // Shield (blurring) should be active whenever the timer is running
+      window.dispatchEvent(new CustomEvent("FOCUSFORGE_TIMER_STATE", {
+        detail: { 
+          active: isActive,
+          domains: domains
+        }
+      }));
+    };
+
+    notifyExtension();
 
     if (!isActive || !isStrictMode) {
       setIsTabFocused(true);
