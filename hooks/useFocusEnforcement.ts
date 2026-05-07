@@ -16,17 +16,16 @@ export function useFocusEnforcement({ isActive, isStrictMode, classId, onViolati
 
   useEffect(() => {
     const notifyExtension = async () => {
-      let domains = ["facebook.com", "youtube.com", "tiktok.com", "instagram.com"];
+      let domains: string[] = []; // Default to empty, strictly matrix-driven
       
       if (classId) {
         const policy = await getFocusPolicy(classId);
         if (policy && policy.domains.length > 0) {
-          domains = policy.domains;
+          domains = policy.domains.filter(d => d.trim() !== "");
         }
       }
 
       // Notify the Chrome Extension (if installed)
-      // Shield (blurring) should be active whenever the timer is running
       window.dispatchEvent(new CustomEvent("FOCUSFORGE_TIMER_STATE", {
         detail: { 
           active: isActive,

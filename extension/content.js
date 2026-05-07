@@ -24,16 +24,16 @@ function updateBlur(active, domains = []) {
   // Never blur the FocusForge app itself
   if (isFocusForgeApp) return;
 
-  // If active but no domains are specified in the matrix, we don't blur anything
-  // unless we want a global default (user said "ACCORDING ONLY TO THE MATRIX")
-  if (!active || !domains || domains.length === 0) {
+  const distractionList = (domains || []).filter(d => d && d.length > 3);
+  
+  if (!active || distractionList.length === 0) {
     document.documentElement.classList.remove("focusforge-distraction");
     const overlay = document.getElementById("focusforge-shield-overlay");
     if (overlay) overlay.remove();
     return;
   }
 
-  const isDistraction = domains.some(d => window.location.hostname.includes(d.toLowerCase()));
+  const isDistraction = distractionList.some(d => window.location.hostname.toLowerCase().includes(d.toLowerCase()));
 
   if (active && isDistraction) {
     document.documentElement.classList.add("focusforge-distraction");
