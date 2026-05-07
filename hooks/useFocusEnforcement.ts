@@ -14,9 +14,9 @@ export function useFocusEnforcement({ isActive, isStrictMode, onViolation }: Foc
 
   useEffect(() => {
     // Notify the Chrome Extension (if installed)
-    const isFocusActive = isActive && isStrictMode;
+    // Shield (blurring) should be active whenever the timer is running
     window.dispatchEvent(new CustomEvent("FOCUSFORGE_TIMER_STATE", {
-      detail: { active: isFocusActive }
+      detail: { active: isActive }
     }));
 
     if (!isActive || !isStrictMode) {

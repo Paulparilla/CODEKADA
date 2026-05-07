@@ -4,18 +4,27 @@ let isFocusModeActive = false;
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SET_FOCUS_MODE") {
     isFocusModeActive = message.active;
-    
-    // Notify all tabs about the state change
+    broadcastFocusState();
+  } else if (message.type === "TIMER_FINISHED") {
+    // Notify all tabs to play a sound
     chrome.tabs.query({}, (tabs) => {
       tabs.forEach((tab) => {
-        chrome.tabs.sendMessage(tab.id, { 
-          type: "FOCUS_STATE_CHANGED", 
-          active: isFocusModeActive 
-        }).catch(() => {}); // Ignore errors for internal chrome pages
+        chrome.tabs.sendMessage(tab.id, { type: "PLAY_NOTIFICATION" }).catch(() => {});
       });
     });
   }
 });
+
+function broadcastFocusState() {
+  chrome.tabs.query({}, (tabs) => {
+    tabs.forEach((tab) => {
+      chrome.tabs.sendMessage(tab.id, { 
+        type: "FOCUS_STATE_CHANGED", 
+        active: isFocusModeActive 
+      }).catch(() => {});
+    });
+  });
+}
 
 // Also notify new tabs when they load
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

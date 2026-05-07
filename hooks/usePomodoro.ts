@@ -72,6 +72,9 @@ export function usePomodoro(settings = DEFAULT_SETTINGS) {
         switchMode("WORK");
       }
       
+      // Notify extension that timer is finished
+      window.dispatchEvent(new CustomEvent("FOCUSFORGE_TIMER_FINISHED"));
+      
       // Notification sound logic could go here
       try {
         const audio = new Audio("/sounds/notification.mp3");
