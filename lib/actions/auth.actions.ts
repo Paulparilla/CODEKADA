@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { signUpSchema, signInSchema } from "@/types";
@@ -140,7 +141,7 @@ export async function updateProfile(userId: string, data: { name?: string; avata
     });
 
     // Also update Supabase Auth metadata to keep them in sync
-    const supabase = createClient();
+    const supabase = await createClient();
     await supabase.auth.updateUser({
       data: { 
         name: updatedUser.name,
