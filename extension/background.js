@@ -5,9 +5,10 @@ let blockedDomains = [];
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "SET_FOCUS_MODE") {
     isFocusModeActive = message.active;
-    if (message.domains) {
+    if (Array.isArray(message.domains)) {
       blockedDomains = message.domains;
     }
+    console.log("[FocusForge] Focus Mode Set:", isFocusModeActive, "Domains:", blockedDomains);
     broadcastFocusState();
   } else if (message.type === "TIMER_FINISHED") {
     // Notify all tabs to play a sound

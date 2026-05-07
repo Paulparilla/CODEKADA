@@ -74,6 +74,11 @@ export function useFocusEnforcement({ isActive, isStrictMode, classId, onViolati
     return () => {
       window.removeEventListener("blur", handleBlur);
       window.removeEventListener("focus", handleFocus);
+      
+      // Cleanup: Notify extension that focus is inactive when leaving the page
+      window.dispatchEvent(new CustomEvent("FOCUSFORGE_TIMER_STATE", {
+        detail: { active: false, domains: [] }
+      }));
     };
   }, [isActive, isStrictMode, onViolation]);
 
