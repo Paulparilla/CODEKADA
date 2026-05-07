@@ -23,13 +23,15 @@ import QuizAnalyticsModal from "./QuizAnalyticsModal";
 
 interface ClassToolsProps {
   classId: string;
+  teacherId: string;
   assignments?: any[];
   documents?: any[];
   quizzes?: any[];
   onQuizClick?: (quizId: string) => void;
+  onViewResults?: (quizId: string) => void;
 }
 
-export default function ClassTools({ classId, assignments = [], documents = [], quizzes = [], onQuizClick }: ClassToolsProps) {
+export default function ClassTools({ classId, teacherId, assignments = [], documents = [], quizzes = [], onQuizClick }: ClassToolsProps) {
   const router = useRouter();
   const [analyticsQuiz, setAnalyticsQuiz] = useState<any>(null);
 
@@ -182,6 +184,7 @@ export default function ClassTools({ classId, assignments = [], documents = [], 
       {analyticsQuiz && (
         <QuizAnalyticsModal 
           quiz={analyticsQuiz} 
+          teacherId={teacherId}
           onClose={() => setAnalyticsQuiz(null)} 
         />
       )}

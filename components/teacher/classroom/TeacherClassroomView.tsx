@@ -71,6 +71,7 @@ export default function TeacherClassroomView({ classData, userId }: TeacherClass
         <div className={`${activeTab === "tools" ? "block" : "hidden"} lg:block lg:col-span-3`}>
           <ClassTools 
             classId={classData.id} 
+            teacherId={userId}
             quizzes={classData.quizzes}
             assignments={classData.assignments}
             documents={classData.documents}
@@ -122,6 +123,7 @@ export default function TeacherClassroomView({ classData, userId }: TeacherClass
       {analyticsQuiz && (
         <QuizAnalyticsModal 
           quiz={analyticsQuiz} 
+          teacherId={userId}
           onClose={() => setAnalyticsQuiz(null)} 
         />
       )}
