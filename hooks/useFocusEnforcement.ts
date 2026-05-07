@@ -26,9 +26,10 @@ export function useFocusEnforcement({ isActive, isStrictMode, classId, onViolati
       }
 
       // Notify the Chrome Extension (if installed)
+      // Shield (blurring) should ONLY be active if both the timer is running AND strict mode is ON
       window.dispatchEvent(new CustomEvent("FOCUSFORGE_TIMER_STATE", {
         detail: { 
-          active: isActive,
+          active: isActive && isStrictMode,
           domains: domains
         }
       }));
