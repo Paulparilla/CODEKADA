@@ -10,7 +10,8 @@ import {
   LogOut, 
   Users,
   Trophy,
-  Activity
+  Activity,
+  Shield
 } from "lucide-react";
 import { signOut } from "@/lib/actions/auth.actions";
 
@@ -32,6 +33,7 @@ export default function Sidebar({ role }: SidebarProps) {
     { name: "Dashboard", href: "/teacher/dashboard", icon: LayoutDashboard },
     { name: "My Classes", href: "/teacher/classes", icon: Users },
     { name: "Pomodoro", href: "/teacher/pomodoro", icon: Timer },
+    { name: "Shield Matrix", href: "/teacher/shield", icon: Shield },
   ];
 
   const links = role === "STUDENT" ? studentLinks : teacherLinks;

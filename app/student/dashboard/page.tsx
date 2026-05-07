@@ -20,11 +20,21 @@ export default function StudentDashboard() {
   const [isStrictMode, setIsStrictMode] = useState(false);
   const [activeExams, setActiveExams] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<any[]>([]);
+  const [primaryClassId, setPrimaryClassId] = useState<string | undefined>();
 
   useEffect(() => {
     if (user) {
       getActiveExams(user.id).then(setActiveExams);
       getStudentAnalytics(user.id).then(setAnalytics);
+      
+      // Fetch primary class for Shield policy
+      import("@/lib/actions/class.actions").then(({ getStudentClasses }) => {
+        getStudentClasses(user.id).then(classes => {
+          if (classes && classes.length > 0) {
+            setPrimaryClassId(classes[0].id);
+          }
+        });
+      });
     }
   }, [user]);
   const { 
@@ -41,7 +51,7 @@ export default function StudentDashboard() {
   useFocusEnforcement({
     isActive,
     isStrictMode,
-    classId: user?.memberships?.[0]?.classId, // Use primary class policy if available
+    classId: primaryClassId,
   });
 
   const [isSyncing, setIsSyncing] = useState(false);
