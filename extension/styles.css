@@ -1,0 +1,21 @@
+/* styles.css */
+.focusforge-distraction body {
+  filter: blur(15px) grayscale(100%);
+  pointer-events: none !important;
+  user-select: none !important;
+  overflow: hidden !important;
+}
+
+#focusforge-shield-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  z-index: 2147483647 !important; /* Maximum possible z-index */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: all !important;
+}

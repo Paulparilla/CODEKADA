@@ -67,6 +67,7 @@ export default function LoginPage() {
               required
               autoComplete="email"
               className="input-field"
+              suppressHydrationWarning
             />
             {state.fieldErrors?.email && (
               <p className="text-[11px] font-bold text-destructive ml-3">
@@ -96,6 +97,7 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
               className="input-field"
+              suppressHydrationWarning
             />
             {state.fieldErrors?.password && (
               <p className="text-[11px] font-bold text-destructive ml-3">
@@ -109,6 +111,7 @@ export default function LoginPage() {
             type="submit"
             disabled={pending}
             className="btn-primary w-full group overflow-hidden relative"
+            suppressHydrationWarning
           >
             <span className={`relative z-10 flex items-center gap-2 ${pending ? "opacity-0" : "opacity-100"}`}>
               Enter Forge

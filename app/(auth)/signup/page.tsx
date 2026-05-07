@@ -45,13 +45,13 @@ export default function SignUpPage() {
 
         <div className="space-y-6">
           <h1 className="text-5xl lg:text-7xl font-black tracking-tighter text-primary leading-[1.1]">
-            Master your <span className="text-secondary">focus</span>, 
+            Elevate your <span className="text-secondary">focus</span>, 
             <br />
-            Forge your <span className="text-accent italic">future.</span>
+            achieve your <span className="text-accent italic">goals.</span>
           </h1>
           <p className="max-w-md text-lg text-muted-foreground/80 leading-relaxed mx-auto lg:mx-0">
-            The all-in-one productivity forge for students and educators. 
-            Gamified deep work sessions, automated tracking, and classroom mastery.
+            A professional productivity platform for students and instructors. 
+            Streamlined focus sessions, progress tracking, and classroom management.
           </p>
         </div>
 
@@ -73,8 +73,8 @@ export default function SignUpPage() {
       <section className="w-full max-w-md lg:max-w-[480px]">
         <div className="premium-card">
           <div className="mb-8">
-            <h2 className="text-3xl font-black tracking-tight text-primary">Get Started</h2>
-            <p className="text-muted-foreground mt-2">Join the elite circle of high-performers.</p>
+            <h2 className="text-3xl font-black tracking-tight text-primary">Create Account</h2>
+            <p className="text-muted-foreground mt-2">Join a community of dedicated learners.</p>
           </div>
 
           <form action={formAction} className="space-y-6">
@@ -87,7 +87,7 @@ export default function SignUpPage() {
             {/* Role Selection */}
             <div className="space-y-3">
               <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                Identity
+                User Role
               </label>
               <input type="hidden" name="role" value={selectedRole} />
               <div className="grid grid-cols-2 gap-3">
@@ -103,7 +103,7 @@ export default function SignUpPage() {
                     }`}
                   >
                     <span className={`text-sm font-bold ${selectedRole === role ? "text-secondary" : "text-muted-foreground"}`}>
-                      {role === "STUDENT" ? "Student" : "Educator"}
+                      {role === "STUDENT" ? "Student" : "Instructor"}
                     </span>
                     {selectedRole === role && (
                       <div className="absolute right-3 top-3 h-2 w-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(59,130,246,0.5)]" />

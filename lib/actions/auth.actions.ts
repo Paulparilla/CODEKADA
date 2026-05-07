@@ -129,3 +129,29 @@ export async function signOut(): Promise<void> {
   await supabase.auth.signOut();
   redirect("/login");
 }
+/**
+ * Update user profile (Name, Avatar, etc.)
+ */
+export async function updateProfile(userId: string, data: { name?: string; avatar?: string }) {
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+
+    // Also update Supabase Auth metadata to keep them in sync
+    const supabase = createClient();
+    await supabase.auth.updateUser({
+      data: { 
+        name: updatedUser.name,
+        avatar: updatedUser.avatar 
+      }
+    });
+
+    revalidatePath("/", "layout");
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    console.error("Profile update failed:", error);
+    return { success: false, error: "Failed to update profile." };
+  }
+}
