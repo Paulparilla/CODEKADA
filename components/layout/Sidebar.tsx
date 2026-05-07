@@ -31,6 +31,7 @@ export default function Sidebar({ role }: SidebarProps) {
   const teacherLinks = [
     { name: "Dashboard", href: "/teacher/dashboard", icon: LayoutDashboard },
     { name: "My Classes", href: "/teacher/classes", icon: Users },
+    { name: "Pomodoro", href: "/teacher/pomodoro", icon: Timer },
   ];
 
   const links = role === "STUDENT" ? studentLinks : teacherLinks;

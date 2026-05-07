@@ -43,6 +43,22 @@ export default async function PomodoroPage() {
         },
         orderBy: { startTime: "asc" },
         take: 5,
+      },
+      memberships: {
+        include: {
+          class: {
+            include: {
+              assignments: {
+                orderBy: { createdAt: "desc" },
+                take: 5
+              },
+              quizzes: {
+                orderBy: { createdAt: "desc" },
+                take: 5
+              }
+            }
+          }
+        }
       }
     }
   });
@@ -67,15 +83,41 @@ export default async function PomodoroPage() {
     }))
   ].sort((a, b) => b.date.getTime() - a.date.getTime()).slice(0, 5);
 
-  // Format tasks
-  const tasks = user.schedules.map(s => ({
+  // Format tasks (Merge Schedules + Class Assignments + Class Quizzes)
+  const scheduledTasks = user.schedules.map(s => ({
     id: s.id,
-    title: s.title || (s.isExamMode ? "Exam Session" : "Study Session"),
+    title: `📅 ${s.title || (s.isExamMode ? "Exam Session" : "Study Session")}`,
     time: new Date(s.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     duration: s.duration,
     class: s.class?.name,
     isCompleted: s.sessions.length > 0,
   }));
+
+  const classTasks: any[] = [];
+  user.memberships.forEach(m => {
+    m.class.assignments.forEach(a => {
+      classTasks.push({
+        id: a.id,
+        title: `📝 ${a.title}`,
+        time: "Upcoming",
+        duration: 0,
+        class: m.class.name,
+        isCompleted: false,
+      });
+    });
+    m.class.quizzes.forEach(q => {
+      classTasks.push({
+        id: q.id,
+        title: `🧠 ${q.title}`,
+        time: "AI Quiz",
+        duration: 0,
+        class: m.class.name,
+        isCompleted: false,
+      });
+    });
+  });
+
+  const tasks = [...scheduledTasks, ...classTasks].slice(0, 8);
 
   return (
     <div className="relative">

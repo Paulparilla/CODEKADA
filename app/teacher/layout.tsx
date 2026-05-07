@@ -2,6 +2,7 @@ import { requireAuth } from "@/lib/auth";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 import Footer from "@/components/layout/Footer";
+import NotificationToastListener from "@/components/layout/NotificationToastListener";
 
 export default async function TeacherLayout({
   children,
@@ -13,6 +14,9 @@ export default async function TeacherLayout({
 
   return (
     <div className="min-h-screen bg-background text-foreground flex">
+      {/* Real-time Global Listeners */}
+      <NotificationToastListener userId={user.id} />
+
       {/* Sidebar - Desktop Only */}
       <Sidebar role={user.role} />
 

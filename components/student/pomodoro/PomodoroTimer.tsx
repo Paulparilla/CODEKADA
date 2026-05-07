@@ -74,7 +74,8 @@ export default function PomodoroTimer({ userId }: PomodoroTimerProps) {
 
   // Initialize audio
   useEffect(() => {
-    audioRef.current = new Audio("/sounds/complete.mp3");
+    audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+    audioRef.current.volume = 0.5;
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
@@ -82,6 +83,7 @@ export default function PomodoroTimer({ userId }: PomodoroTimerProps) {
 
   const playSound = useCallback(() => {
     if (!isMuted && audioRef.current) {
+      audioRef.current.currentTime = 0; // Reset to start
       audioRef.current.play().catch(e => console.log("Audio play blocked", e));
     }
   }, [isMuted]);

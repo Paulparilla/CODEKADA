@@ -147,19 +147,48 @@ export async function getTeacherClasses(teacherId: string) {
   }
 }
 
-/**
- * Get class details (Members, etc.)
- */
 export async function getClassDetails(classId: string) {
   try {
     const classData = await prisma.class.findUnique({
       where: { id: classId },
       include: {
-        teacher: { select: { name: true, avatar: true } },
+        teacher: { select: { id: true, name: true, avatar: true } },
         members: {
           include: {
             user: { select: { id: true, name: true, avatar: true, level: true, xp: true } },
           },
+          orderBy: { joinedAt: "desc" }
+        },
+        announcements: {
+          include: { 
+            author: { select: { name: true, avatar: true } },
+            comments: {
+              include: { author: { select: { name: true, avatar: true } } },
+              orderBy: { createdAt: "asc" }
+            },
+            reactions: true
+          },
+          orderBy: { createdAt: "desc" }
+        },
+        assignments: {
+          orderBy: { createdAt: "desc" }
+        },
+        documents: {
+          orderBy: { createdAt: "desc" }
+        },
+        quizzes: {
+          include: {
+            questions: true,
+            submissions: {
+              include: {
+                user: {
+                  select: { name: true, avatar: true }
+                }
+              },
+              orderBy: { completedAt: "desc" }
+            }
+          },
+          orderBy: { createdAt: "desc" }
         },
         _count: { select: { members: true } },
       },
@@ -169,5 +198,120 @@ export async function getClassDetails(classId: string) {
   } catch (error) {
     console.error("Failed to fetch class details:", error);
     return null;
+  }
+}
+
+/**
+ * Post an announcement to the class wall.
+ */
+export async function postAnnouncement(classId: string, authorId: string, content: string) {
+  try {
+    await prisma.announcement.create({
+      data: { classId, authorId, content }
+    });
+    revalidatePath(`/teacher/classes/${classId}`);
+    revalidatePath(`/student/classes/${classId}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to post announcement" };
+  }
+}
+
+/**
+ * Create a new assignment.
+ */
+export async function createAssignment(classId: string, title: string, description?: string, xpReward = 100) {
+  try {
+    const classData = await prisma.class.findUnique({
+      where: { id: classId },
+      select: { teacherId: true }
+    });
+
+    const newAssignment = await prisma.assignment.create({
+      data: { classId, title, description, xpReward }
+    });
+
+    if (classData) {
+      await prisma.announcement.create({
+        data: {
+          classId,
+          authorId: classData.teacherId,
+          content: `📝 New Assignment: **${title}**! Complete this task to earn ${xpReward} XP.`,
+          type: "ASSIGNMENT",
+          attachmentId: newAssignment.id
+        }
+      });
+    }
+
+    revalidatePath(`/teacher/classes/${classId}`);
+    revalidatePath(`/student/classes/${classId}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to create assignment" };
+  }
+}
+
+/**
+ * Upload a document.
+ */
+export async function uploadDocument(classId: string, name: string, url: string, type: string) {
+  try {
+    const classData = await prisma.class.findUnique({
+      where: { id: classId },
+      select: { teacherId: true }
+    });
+
+    const newDoc = await prisma.document.create({
+      data: { classId, name, url, type }
+    });
+
+    if (classData) {
+      await prisma.announcement.create({
+        data: {
+          classId,
+          authorId: classData.teacherId,
+          content: `📁 New Resource Shared: **${name}**. Check out the new ${type} document!`,
+          type: "DOCUMENT",
+          attachmentId: newDoc.id
+        }
+      });
+    }
+
+    revalidatePath(`/teacher/classes/${classId}`);
+    revalidatePath(`/student/classes/${classId}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to upload document" };
+  }
+}
+
+/**
+ * Remove a student from a class.
+ */
+export async function removeStudent(classId: string, userId: string) {
+  try {
+    await prisma.classMember.delete({
+      where: { classId_userId: { classId, userId } }
+    });
+    revalidatePath(`/teacher/classes/${classId}`);
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to remove student" };
+  }
+}
+
+/**
+ * Delete a class permanently.
+ */
+export async function deleteClass(classId: string) {
+  try {
+    await prisma.class.delete({
+      where: { id: classId }
+    });
+    revalidatePath("/teacher/dashboard");
+    revalidatePath("/teacher/classes");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to delete class" };
   }
 }
