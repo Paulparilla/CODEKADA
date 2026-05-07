@@ -33,7 +33,11 @@ function updateBlur(active, domains = []) {
     return;
   }
 
-  const isDistraction = distractionList.some(d => window.location.hostname.toLowerCase().includes(d.toLowerCase()));
+  const currentHostname = window.location.hostname.toLowerCase();
+  const isDistraction = distractionList.some(d => {
+    const blocked = d.toLowerCase().trim();
+    return currentHostname === blocked || currentHostname.endsWith("." + blocked);
+  });
 
   if (active && isDistraction) {
     document.documentElement.classList.add("focusforge-distraction");
