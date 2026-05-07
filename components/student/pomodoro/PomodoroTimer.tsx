@@ -106,6 +106,9 @@ export default function PomodoroTimer({ userId }: PomodoroTimerProps) {
     playSound();
     setIsActive(false);
     
+    // Notify extension that timer is finished
+    window.dispatchEvent(new CustomEvent("FOCUSFORGE_TIMER_FINISHED"));
+    
     if (mode === "focus") {
       setSessionsCompleted(prev => prev + 1);
       
@@ -141,8 +144,9 @@ export default function PomodoroTimer({ userId }: PomodoroTimerProps) {
       }
     } else {
       switchMode("focus");
+      setIsActive(true); // Auto-start focus after break finishes
     }
-  }, [mode, sessionsCompleted, userId, playSound]);
+  }, [mode, sessionsCompleted, userId, playSound, durations.focus]);
 
   useEffect(() => {
     if (isActive && timeLeft > 0) {
