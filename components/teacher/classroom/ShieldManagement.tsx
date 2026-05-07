@@ -67,10 +67,23 @@ export default function ShieldManagement({ classId }: ShieldManagementProps) {
 
     if (result.success) {
       Swal.fire({
-        title: "Policy Updated",
-        text: "The Focus Shield matrix has been updated for all students in this class.",
+        title: "Matrix Synchronized",
+        text: "The Focus Shield policy has been successfully pushed to the SQL database and synced with all student devices.",
         icon: "success",
+        background: "var(--color-card)",
+        color: "var(--color-primary)",
         confirmButtonColor: "var(--color-secondary)",
+        customClass: {
+          popup: "rounded-[2rem] border border-border shadow-2xl",
+          confirmButton: "rounded-xl px-8 py-3 font-black uppercase tracking-widest text-xs",
+        }
+      });
+    } else {
+      Swal.fire({
+        title: "Sync Failed",
+        text: "There was an error updating the shield matrix. Please check your connection.",
+        icon: "error",
+        confirmButtonColor: "#ef4444",
       });
     }
   };
