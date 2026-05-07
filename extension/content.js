@@ -21,18 +21,34 @@ if (isFocusForgeApp) {
 
 // 2. Global Blur Enforcement Logic
 function updateBlur(active, domains = []) {
-  // Never blur the FocusForge app or essential workspace tools
-  const WHITELIST = ["localhost", "127.0.0.1", "google.com", "gmail.com", "googleusercontent.com", "googleapis.com", "focusforge"];
-  const isWhitelisted = WHITELIST.some(w => window.location.hostname.toLowerCase().includes(w));
+  const currentHostname = window.location.hostname.toLowerCase();
   
-  if (isFocusForgeApp || isWhitelisted) {
-    console.log("[FocusForge] Site is whitelisted. Skipping shield.");
+  // NEVER BLUR THESE DOMAINS - ABSOLUTE WHITELIST
+  const WHITELIST = [
+    "localhost", 
+    "127.0.0.1", 
+    "google.com", 
+    "gmail.com", 
+    "mail.google.com",
+    "googleusercontent.com", 
+    "googleapis.com", 
+    "focusforge", 
+    "supabase.co"
+  ];
+  
+  const isWhitelisted = WHITELIST.some(w => currentHostname.includes(w));
+  
+  if (isWhitelisted) {
+    console.log(`[FocusForge] Whitelist match: ${currentHostname}. Forcing unblur.`);
+    document.documentElement.classList.remove("focusforge-distraction");
+    const overlay = document.getElementById("focusforge-shield-overlay");
+    if (overlay) overlay.remove();
     return;
   }
 
   const distractionList = (domains || []).filter(d => d && d.length > 3);
   
-  console.log("[FocusForge] Shield State:", { active, distractionList, current: window.location.hostname });
+  console.log(`[FocusForge] Active: ${active}, Domains:`, distractionList);
 
   if (!active || distractionList.length === 0) {
     document.documentElement.classList.remove("focusforge-distraction");
@@ -41,7 +57,6 @@ function updateBlur(active, domains = []) {
     return;
   }
 
-  const currentHostname = window.location.hostname.toLowerCase();
   const isDistraction = distractionList.some(d => {
     const blocked = d.toLowerCase().trim();
     return currentHostname === blocked || currentHostname.endsWith("." + blocked);

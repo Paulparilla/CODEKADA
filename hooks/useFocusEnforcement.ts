@@ -16,7 +16,8 @@ export function useFocusEnforcement({ isActive, isStrictMode, classId, onViolati
 
   useEffect(() => {
     const notifyExtension = async () => {
-      let domains: string[] = []; // Default to empty, strictly matrix-driven
+      // Default distraction list for general focus (e.g. Teacher's own Pomodoro)
+      let domains: string[] = ["facebook.com", "youtube.com", "tiktok.com", "instagram.com", "twitter.com"]; 
       
       if (classId) {
         const policy = await getFocusPolicy(classId);
